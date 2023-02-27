@@ -2,6 +2,8 @@
 let username = prompt("아이디를 입력하세요");
 let roomNum = prompt("채팅방 번호를 입력하세요");
 
+document.querySelector("#username").innerHTML = username;
+
 // SSE 연결
 const eventSource = new EventSource(`http://localhost:8080/chat/roomNum/${roomNum}`);
 eventSource.onmessage = (event) => {
@@ -11,22 +13,31 @@ eventSource.onmessage = (event) => {
     } else {                      // 외 모든 채팅
         initOthersMsg(data);
     }
-    
 }
 
 // 내가 쓴 채팅 기록
 function getSendMsgBox(data) {
+
+    let md = data.createdAt.substring(5, 10)
+	let tm = data.createdAt.substring(11, 16)
+	convertTime = tm + " | " + md
+
     return `<div class="sent_msg">
             <p>${data.msg}</p>
-            <span class="time_date">${data.createdAt} / ${data.sender}</span>
+            <span class="time_date">${convertTime} / <b>${data.sender}</b></span>
             </div>`;
 }
 
 // 남이 쓴 채팅 기록
 function getReceiveMsgBox(data) {
+
+    let md = data.createdAt.substring(5, 10)
+	let tm = data.createdAt.substring(11, 16)
+	convertTime = tm + " | " + md
+
     return `<div class="received_withd_msg">
             <p>${data.msg}</p>
-            <span class="time_date">${data.createdAt} / ${data.sender}</span>
+            <span class="time_date">${convertTime} / <b>${data.sender}</b></span>
             </div>`;
 }
 
@@ -42,6 +53,8 @@ function getReceiveMsgBox(data) {
 
         chatSendBox.innerHTML = getSendMsgBox(data); 
         chatBox.append(chatSendBox);
+
+        document.documentElement.scrollTop = document.body.scrollHeight;
     }
 
     // 남이 쓴 채팅
@@ -52,6 +65,8 @@ function getReceiveMsgBox(data) {
 
         chatReceiveBox.innerHTML = getReceiveMsgBox(data); 
         chatBox.append(chatReceiveBox);
+
+        document.documentElement.scrollTop = document.body.scrollHeight;
 }
 
 // 채팅 전송 시 db에 post로 insert됨
@@ -60,6 +75,7 @@ function getReceiveMsgBox(data) {
 // 즉, 이 함수는 데이터를 넣기만 하면 됨
 async function addMsg() {
     let chatBox = document.querySelector("#chat-box");
+    let msgInput = document.querySelector("#chat-outgoing-msg");
 
     let chat = {
         sender: username,
